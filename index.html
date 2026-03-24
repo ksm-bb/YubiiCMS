@@ -251,14 +251,14 @@
     // 🃏 COMPONENT: TaskCard
     // ==========================================
     const STATUS_ICONS = {
-      'Sketch': 'https://i.ibb.co/QvWQQrqt/4.gif',
+      'Sketch': 'https://i.ibb.co/gYg9Qnp/cdhw.gif', // ไอคอนใหม่สำหรับ Sketch
       'Base color': 'https://i.ibb.co/RGCYBH5L/1.gif',
       'Rendering': 'https://i.ibb.co/Rkn52G8y/5.gif',
       'Reviewing': 'https://i.ibb.co/84MYyZ63/2.gif',
       'Revising': 'https://i.ibb.co/27970QpT/3.gif'
     };
 
-    const TaskCard = React.memo(({ task, isAdmin, onEdit, onToggleDoing, onToggleStatus, onChangeWorkStatus, onPaymentEdit }) => {
+    const TaskCard = React.memo(({ task, isAdmin, onEdit, onToggleDoing, onToggleStatus, onChangeWorkStatus }) => {
       const usageType = task.usageType || 'non comm';
       const total = parseFloat(task.totalAmount) || 0;
       const paid = parseFloat(task.paidAmount) || 0;
@@ -295,14 +295,8 @@
                  <div className="absolute -bottom-3 -left-4 animate-float-particle-1 drop-shadow-sm">
                     <img src="https://i.ibb.co/0jDTND8c/image.png" className="w-10 h-10 object-contain" alt="particle" />
                  </div>
-                 <div className="absolute top-[0%] -left-5 animate-float-particle-3 drop-shadow-sm" style={{ animationDelay: '1.5s' }}>
-                    <img src="https://i.ibb.co/Z1VQ9kc0/2-ezgif-com-crop.gif" className="w-10 h-10 object-contain opacity-80" alt="particle" />
-                 </div>
                  <div className="absolute -bottom-3 -right-4 animate-float-particle-2 drop-shadow-sm" style={{ animationDelay: '0.5s' }}>
                     <img src="https://i.ibb.co/0jDTND8c/image.png" className="w-10 h-10 object-contain" alt="particle" />
-                 </div>
-                 <div className="absolute top-[0%] -right-5 animate-float-particle-1 drop-shadow-sm" style={{ animationDelay: '1.2s' }}>
-                    <img src="https://i.ibb.co/Z1VQ9kc0/2-ezgif-com-crop.gif" className="w-10 h-10 object-contain opacity-80" alt="particle" />
                  </div>
                </div>
             )}
@@ -373,8 +367,8 @@
             </div>
           </div>
 
-          {/* ส่วนแผนภูมิวงกลม อยู่นอกการ์ดคิว ปรับขนาด 64x64px และเปอร์เซ็นต์เป็นป้าย Badge */}
-          <div onClick={(e) => { e.stopPropagation(); isAdmin && onPaymentEdit(task); }} className={`w-[64px] flex-shrink-0 flex flex-col items-center justify-center relative transition-transform ${isAdmin ? 'hover:scale-105 cursor-pointer' : ''}`}>
+          {/* ส่วนแผนภูมิวงกลม อยู่นอกการ์ดคิว ปรับขนาด 64x64px และเปอร์เซ็นต์เป็นป้าย Badge (ลบคำสั่งคลิกออก) */}
+          <div className={`w-[64px] flex-shrink-0 flex flex-col items-center justify-center relative transition-transform`}>
              <div className="relative w-[64px] h-[64px] flex items-center justify-center">
                <svg className="absolute inset-0 w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 100 100">
                    {/* ชั้นวงกลมพื้นหลังสีเหลืองหม่น (Background layer) */}
@@ -500,9 +494,6 @@
       const [showAuthModal, setShowAuthModal] = useState(false);   
       const [showImageModal, setShowImageModal] = useState(false); 
       const [showBannerModal, setShowBannerModal] = useState(false); 
-
-      const [showPaymentModal, setShowPaymentModal] = useState(false);
-      const [paymentEditingTask, setPaymentEditingTask] = useState(null);
       
       const [searchQuery, setSearchQuery] = useState('');
       const [filterType, setFilterType] = useState('all');
@@ -640,11 +631,6 @@
         setShowModal(true);
       }, []);
 
-      const handlePaymentEdit = useCallback((task) => {
-        setPaymentEditingTask(task);
-        setShowPaymentModal(true);
-      }, []);
-
       const handleSaveTask = (e) => {
         e.preventDefault();
         setIsSaving(true);
@@ -671,27 +657,6 @@
                 setTasks(prev => editingTask ? prev.map(t => t.id === res.task.id ? res.task : t) : [...prev, res.task]);
              }
              setIsSaving(false); setShowModal(false); setEditingTask(null);
-          })
-          .catch(() => { setIsSaving(false); });
-      };
-
-      const handleSavePayment = (e) => {
-        e.preventDefault();
-        setIsSaving(true);
-        const formData = new FormData(e.target);
-        const updatedTask = {
-          ...paymentEditingTask,
-          usageType: formData.get('usageType'),
-          totalAmount: formData.get('totalAmount'),
-          paidAmount: formData.get('paidAmount')
-        };
-
-        fetchAPI({ action: 'saveOrUpdateTask', task: updatedTask })
-          .then(res => {
-             if (res.status === 'success') {
-                setTasks(prev => prev.map(t => t.id === res.task.id ? res.task : t));
-             }
-             setIsSaving(false); setShowPaymentModal(false); setPaymentEditingTask(null);
           })
           .catch(() => { setIsSaving(false); });
       };
@@ -799,7 +764,7 @@
                     <div className="h-[1px] flex-1 bg-gradient-to-r from-[#DDCADB]/40 to-transparent mx-3"></div>
                   </div>
                   <div className="space-y-1">
-                    {todayTasks.length > 0 ? todayTasks.map(t => <TaskCard key={t.id} task={t} isAdmin={isAdmin} onEdit={handleEditTask} onToggleDoing={toggleDoing} onToggleStatus={toggleStatus} onChangeWorkStatus={handleChangeWorkStatus} onPaymentEdit={handlePaymentEdit} />) : (
+                    {todayTasks.length > 0 ? todayTasks.map(t => <TaskCard key={t.id} task={t} isAdmin={isAdmin} onEdit={handleEditTask} onToggleDoing={toggleDoing} onToggleStatus={toggleStatus} onChangeWorkStatus={handleChangeWorkStatus} />) : (
                       <div className="text-center py-10 rounded-[28px] border-2 border-dashed" style={{ backgroundColor: `${COLORS.cardWhite}4d`, borderColor: COLORS.cardBorder }}>
                         <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 text-[#978489]">Sky is clear ✨</p>
                       </div>
@@ -832,7 +797,7 @@
                   {isCalendarView && <CalendarView currentMonth={currentMonth} setCurrentMonth={setCurrentMonth} selectedDate={selectedDate} setSelectedDate={setSelectedDate} today={today} tasks={tasks} />}
 
                   <div className="space-y-1">
-                    {displayedTasks.length > 0 ? displayedTasks.map(t => <TaskCard key={t.id} task={t} isAdmin={isAdmin} onEdit={handleEditTask} onToggleDoing={toggleDoing} onToggleStatus={toggleStatus} onChangeWorkStatus={handleChangeWorkStatus} onPaymentEdit={handlePaymentEdit} />) : (
+                    {displayedTasks.length > 0 ? displayedTasks.map(t => <TaskCard key={t.id} task={t} isAdmin={isAdmin} onEdit={handleEditTask} onToggleDoing={toggleDoing} onToggleStatus={toggleStatus} onChangeWorkStatus={handleChangeWorkStatus} />) : (
                       <div className="text-center py-10 rounded-[28px] border-[4px] border-dashed shadow-sm mt-4" style={{ backgroundColor: `${COLORS.cardWhite}4d`, borderColor: COLORS.cardBorder }}>
                         <p className="text-[10px] font-black uppercase tracking-widest opacity-60 text-[#978489] whitespace-nowrap">
                           {isCalendarView ? "วันนี้คิวว่าง ✨" : "No records found ✨"}
@@ -947,42 +912,6 @@
                      </div>
                      <button type="button" onClick={() => { setShowModal(false); setEditingTask(null); }} className="w-full text-[9px] font-bold text-[#978489]/50 mt-2 uppercase tracking-widest whitespace-nowrap pb-1">Close</button>
                    </div>
-                </form>
-              </div>
-            )}
-
-            {/* Payment Modal */}
-            {showPaymentModal && paymentEditingTask && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#978489]/20 backdrop-blur-[2px] animate-fadeIn">
-                <form onSubmit={handleSavePayment} className="backdrop-blur-xl w-full max-w-xs rounded-[35px] p-6 shadow-2xl animate-slideUp" style={{ backgroundColor: `${COLORS.modalBg}f2`, borderWidth: '1px', borderColor: COLORS.cardBorder }}>
-                    <h3 className="text-sm font-black mb-4 text-center text-[#978489]">จัดการสิทธิ์และชำระเงิน 💰</h3>
-                    <div className="space-y-3 relative">
-                       {isSaving && (
-                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-2xl backdrop-blur-sm" style={{ backgroundColor: `${COLORS.modalBg}cc` }}>
-                            <IconLoader size={32} className="animate-spin-slow" style={{ color: COLORS.pinkDeep }} />
-                            <span className="text-[10px] font-black mt-2 text-[#978489]/80">กำลังบันทึก...</span>
-                         </div>
-                       )}
-                       
-                       <div className="flex gap-2 mb-4">
-                          <label className="flex-1 cursor-pointer relative">
-                             <input type="radio" name="usageType" value="non comm" defaultChecked={paymentEditingTask?.usageType !== 'comm use'} className="peer sr-only" />
-                             <div className="text-center py-2.5 rounded-xl border-[2px] text-[10px] font-black tracking-wider transition-all peer-checked:bg-[#DDCADB] peer-checked:text-white peer-checked:border-[#DDCADB] border-[#DBD8E7]/50 text-[#978489]/60 whitespace-nowrap" style={{ backgroundColor: COLORS.cardInner }}>NON COMM</div>
-                          </label>
-                          <label className="flex-1 cursor-pointer relative">
-                             <input type="radio" name="usageType" value="comm use" defaultChecked={paymentEditingTask?.usageType === 'comm use'} className="peer sr-only" />
-                             <div className="text-center py-2.5 rounded-xl border-[2px] text-[10px] font-black tracking-wider transition-all peer-checked:bg-[#978489] peer-checked:text-white peer-checked:border-[#978489] border-[#DBD8E7]/50 text-[#978489]/60 whitespace-nowrap" style={{ backgroundColor: COLORS.cardInner }}>COMM USE</div>
-                          </label>
-                       </div>
-
-                       <div className="space-y-2">
-                          <input type="number" name="totalAmount" required defaultValue={paymentEditingTask?.totalAmount || ''} className="w-full p-3.5 rounded-2xl border border-[#DBD8E7]/50 outline-none text-[11px] shadow-sm focus:border-[#FAF1DB] transition-all text-[#978489]" style={{ backgroundColor: COLORS.cardInner }} placeholder="จำนวนเงินเต็ม (Full Amount)" />
-                          <input type="number" name="paidAmount" required defaultValue={paymentEditingTask?.paidAmount || ''} className="w-full p-3.5 rounded-2xl border border-[#DBD8E7]/50 outline-none text-[11px] shadow-sm focus:border-[#FAF1DB] transition-all text-[#978489]" style={{ backgroundColor: COLORS.cardInner }} placeholder="ชำระมาแล้ว (Paid Amount)" />
-                       </div>
-
-                       <button type="submit" className="w-full py-3.5 rounded-2xl font-black text-xs mt-3 shadow-lg active:scale-95 transition-all whitespace-nowrap" style={{ backgroundColor: COLORS.textMain, color: COLORS.white }}>บันทึกข้อมูล</button>
-                       <button type="button" onClick={() => { setShowPaymentModal(false); setPaymentEditingTask(null); }} className="w-full text-[9px] font-bold text-[#978489]/50 mt-1 uppercase tracking-widest whitespace-nowrap">Close</button>
-                    </div>
                 </form>
               </div>
             )}
