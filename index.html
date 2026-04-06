@@ -602,8 +602,25 @@
 
       const waitingCount = useMemo(() => tasks.filter(t => t.status !== 'done').length, [tasks]);
 
+      // สร้างรายการเดือนทั้งหมดที่มีในระบบเพื่อใส่ใน Dropdown
+      const availableMonths = useMemo(() => {
+        const months = new Set();
+        tasks.forEach(t => {
+           if (t.deadline) months.add(t.deadline.substring(0, 7));
+        });
+        // ใส่เดือนปัจจุบันเข้าไปเสมอ
+        const d = new Date();
+        months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+        // เรียงจากเดือนล่าสุดไปเก่าสุด
+        return Array.from(months).sort().reverse();
+      }, [tasks]);
+
       // คำนวณรายรับสำหรับหน้าที่เลือก
-      const revenueTasks = useMemo(() => tasks.filter(t => t.deadline && t.deadline.startsWith(revenueMonth)), [tasks, revenueMonth]);
+      const revenueTasks = useMemo(() => {
+        if (revenueMonth === 'all') return tasks.filter(t => t.deadline); 
+        return tasks.filter(t => t.deadline && t.deadline.startsWith(revenueMonth));
+      }, [tasks, revenueMonth]);
+      
       const calculateRevenue = useMemo(() => {
           let total = 0;
           revenueTasks.forEach(t => {
@@ -836,9 +853,18 @@
                 <div className="animate-fadeIn">
                   {/* Revenue View */}
                   <div className="flex gap-2 mb-4 relative z-10">
-                     <div className="flex-1 p-1.5 rounded-2xl shadow-sm flex items-center backdrop-blur-md transition-colors hover:opacity-80 cursor-pointer" style={{ backgroundColor: `${COLORS.cardWhite}cc`, borderWidth: '2px', borderColor: COLORS.cardBorder }}>
-                        <IconCalendar size={16} className="text-[#978489] ml-2 mr-1" />
-                        <input type="month" value={revenueMonth} onChange={(e) => setRevenueMonth(e.target.value)} className="bg-transparent outline-none text-xs font-black text-[#978489] w-full cursor-pointer appearance-none" />
+                     {/* เปลี่ยนช่องเลือกเดือนเป็น Dropdown สำหรับดูแบบรวมทั้งหมด */}
+                     <div className="flex-1 p-1.5 rounded-2xl shadow-sm flex items-center pr-2 backdrop-blur-md transition-colors hover:opacity-80 cursor-pointer" style={{ backgroundColor: `${COLORS.cardWhite}cc`, borderWidth: '2px', borderColor: COLORS.cardBorder }}>
+                        <IconCalendar size={16} className="text-[#978489] ml-2 mr-1 flex-shrink-0" />
+                        <select value={revenueMonth} onChange={(e) => setRevenueMonth(e.target.value)} className="bg-transparent outline-none text-[11px] font-black text-[#978489] w-full cursor-pointer appearance-none px-1">
+                           <option value="all">รวมทั้งหมด (All)</option>
+                           {availableMonths.map(m => {
+                              const [year, month] = m.split('-');
+                              const date = new Date(year, month - 1);
+                              return <option key={m} value={m}>{date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</option>;
+                           })}
+                        </select>
+                        <IconChevronRight size={14} className="text-[#978489]/50 rotate-90 flex-shrink-0" />
                      </div>
                      <div className="flex-[1.2] p-1.5 rounded-2xl shadow-sm flex items-center pr-2 backdrop-blur-md" style={{ backgroundColor: `${COLORS.cardWhite}cc`, borderWidth: '2px', borderColor: COLORS.cardBorder }}>
                         <select value={revenueFilter} onChange={(e) => setRevenueFilter(e.target.value)} className="bg-transparent outline-none text-xs font-black text-[#978489] w-full cursor-pointer appearance-none px-2">
@@ -846,7 +872,7 @@
                            <option value="sub">Sub Total</option>
                            <option value="tip">Tip</option>
                         </select>
-                        <IconChevronRight size={14} className="text-[#978489]/50 rotate-90" />
+                        <IconChevronRight size={14} className="text-[#978489]/50 rotate-90 flex-shrink-0" />
                      </div>
                   </div>
 
@@ -895,7 +921,7 @@
                       {revenueTasks.length === 0 || (revenueFilter === 'tip' && calculateRevenue === 0) ? (
                            <div className="text-center py-10 rounded-[28px] border-[4px] border-dashed shadow-sm mt-4" style={{ backgroundColor: `${COLORS.cardWhite}4d`, borderColor: COLORS.cardBorder }}>
                               <p className="text-[10px] font-black uppercase tracking-widest opacity-60 text-[#978489] whitespace-nowrap">
-                                ไม่มีรายการในเดือนนี้ ✨
+                                {revenueMonth === 'all' ? 'ไม่มีรายการ ✨' : 'ไม่มีรายการในเดือนนี้ ✨'}
                               </p>
                             </div>
                       ) : null}
