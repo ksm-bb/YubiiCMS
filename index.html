@@ -128,7 +128,6 @@
                 onClick={() => {
                   if (isAdmin) {
                     setIsAdmin(false);
-                    // ถ้ากำลังดูหน้ารายรับอยู่ แล้วกดยกเลิกสิทธิ์ Admin ให้เด้งกลับหน้าหลัก
                     if (view === 'revenue') setView('dashboard');
                   } else {
                     setShowAuthModal(true);
@@ -281,6 +280,9 @@
       const radius = 30; 
       const circumference = 2 * Math.PI * radius;
       const strokeDashoffset = circumference - (percent / 100) * circumference;
+      
+      // ✨ เช็คว่าคิวนี้มี Tip ไหม (ถ้ามีให้เปิดเอฟเฟ็คเรืองแสง)
+      const hasTip = task.hasTip === true || task.hasTip === 'true' || parseFloat(task.tipAmount) > 0;
 
       return (
         <div className="flex items-center gap-2 mb-2 relative">
@@ -374,8 +376,12 @@
             </div>
           </div>
 
-          <div className={`w-[64px] flex-shrink-0 flex flex-col items-center justify-center relative transition-transform`}>
-             <div className="relative w-[64px] h-[64px] flex items-center justify-center">
+          {/* ✨ เพิ่มเอฟเฟ็คเรืองแสงและลอยขึ้นลงเบาๆ ตรงกลมๆ หากมี Tip */}
+          <div className={`w-[64px] flex-shrink-0 flex flex-col items-center justify-center relative transition-transform ${hasTip ? 'animate-bounce-slow' : ''}`}>
+             {hasTip && (
+               <div className="absolute top-0 w-[64px] h-[64px] rounded-full blur-[8px] opacity-60 animate-pulse pointer-events-none" style={{ backgroundColor: circleColor, transform: 'scale(1.15)' }}></div>
+             )}
+             <div className="relative w-[64px] h-[64px] flex items-center justify-center z-10">
                <svg className="absolute inset-0 w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 100 100">
                    <circle cx="50" cy="50" r="49" fill={COLORS.orange} />
                    <circle cx="50" cy="50" r="45" stroke={circleColor} strokeWidth="1.5" fill="none" opacity="0.6" />
@@ -388,7 +394,7 @@
                    </span>
                </div>
              </div>
-             <div className="mt-1.5 px-3 py-0.5 rounded-full shadow-sm flex items-center justify-center" style={{ backgroundColor: circleColor }}>
+             <div className="mt-1.5 px-3 py-0.5 rounded-full shadow-sm flex items-center justify-center relative z-10" style={{ backgroundColor: circleColor }}>
                 <span className="text-[9px] font-black tracking-widest text-white leading-none pt-[1px]">{percent}%</span>
              </div>
           </div>
@@ -487,10 +493,7 @@
       });
       
       // State สำหรับหน้ารายรับ (Revenue View)
-      const [revenueMonth, setRevenueMonth] = useState(() => {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      });
+      const [revenueMonth, setRevenueMonth] = useState('all');
       const [revenueFilter, setRevenueFilter] = useState('grand'); // 'grand', 'sub', 'tip'
       const [isTipEnabled, setIsTipEnabled] = useState(false);
 
@@ -519,7 +522,7 @@
       const [isBouncing, setIsBouncing] = useState(false); 
 
       // ⚠️ เปลี่ยน URL ตรงนี้เป็น API URL ของคุณที่ Deploy ใหม่ (ถ้ามี)
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCeUoUZZDfD3X2oX2xlxnPi0q4ut3FR6YbfaWoFX81Qk4PYB8UxUIcrtYZ4kN8DR10AA/exec";
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhk8iMkn4e_vIZSgAe2zY2psPzRxxQf2OQ_MxxjyV_nbMizu3xq9lhtncE23ZEp4F5dg/exec";
 
       const fetchAPI = async (payload) => {
         try {
@@ -853,7 +856,6 @@
                 <div className="animate-fadeIn">
                   {/* Revenue View */}
                   <div className="flex gap-2 mb-4 relative z-10">
-                     {/* เปลี่ยนช่องเลือกเดือนเป็น Dropdown สำหรับดูแบบรวมทั้งหมด */}
                      <div className="flex-1 p-1.5 rounded-2xl shadow-sm flex items-center pr-2 backdrop-blur-md transition-colors hover:opacity-80 cursor-pointer" style={{ backgroundColor: `${COLORS.cardWhite}cc`, borderWidth: '2px', borderColor: COLORS.cardBorder }}>
                         <IconCalendar size={16} className="text-[#978489] ml-2 mr-1 flex-shrink-0" />
                         <select value={revenueMonth} onChange={(e) => setRevenueMonth(e.target.value)} className="bg-transparent outline-none text-[11px] font-black text-[#978489] w-full cursor-pointer appearance-none px-1">
