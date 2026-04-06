@@ -518,6 +518,7 @@
       const [selectedNextDate, setSelectedNextDate] = useState(''); 
       const [isBouncing, setIsBouncing] = useState(false); 
 
+      // ⚠️ เปลี่ยน URL ตรงนี้เป็น API URL ของคุณที่ Deploy ใหม่ (ถ้ามี)
       const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCeUoUZZDfD3X2oX2xlxnPi0q4ut3FR6YbfaWoFX81Qk4PYB8UxUIcrtYZ4kN8DR10AA/exec";
 
       const fetchAPI = async (payload) => {
@@ -831,7 +832,7 @@
                     )}
                   </div>
                 </div>
-              ) : view === 'revenue' && isAdmin ? ( // 🔒 ล็อคให้เฉพาะ Admin
+              ) : view === 'revenue' && isAdmin ? (
                 <div className="animate-fadeIn">
                   {/* Revenue View */}
                   <div className="flex gap-2 mb-4 relative z-10">
@@ -904,31 +905,31 @@
             </div>
 
             {/* Navigation Bar */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-[280px] z-50">
-              <div className="rounded-[36px] h-[72px] shadow-[0_12px_40px_rgba(151,132,137,0.35)] flex relative items-center" style={{ backgroundColor: COLORS.navBarBg, borderWidth: '1px', borderColor: COLORS.cardBorder }}>
+            <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${isAdmin ? 'w-full max-w-[280px]' : 'w-auto'}`}>
+              <div className={`rounded-[36px] h-[72px] shadow-[0_12px_40px_rgba(151,132,137,0.35)] flex relative items-center ${isAdmin ? 'w-full' : 'px-8 gap-10 justify-center'}`} style={{ backgroundColor: COLORS.navBarBg, borderWidth: '1px', borderColor: COLORS.cardBorder }}>
                   
                   {/* Home (Left) */}
-                  <div className="flex-1 flex items-center justify-center">
+                  <div className={`${isAdmin ? 'flex-1' : ''} flex items-center justify-center`}>
                     <button onClick={() => setView('dashboard')} className={`p-2 transition-all z-10 ${view === 'dashboard' ? 'scale-110 drop-shadow-md' : 'opacity-40 hover:opacity-80'}`} style={{ color: view === 'dashboard' ? COLORS.pinkDeep : COLORS.textMain }}>
                       <IconHome size={26} />
                     </button>
                   </div>
 
-                  {/* File (Center) - No longer pushed down, perfectly aligned */}
-                  <div className="flex-1 flex items-center justify-center">
+                  {/* File (Center) */}
+                  <div className={`${isAdmin ? 'flex-1' : ''} flex items-center justify-center`}>
                     <button onClick={() => setView('all')} className={`p-2 transition-all z-10 ${view === 'all' ? 'scale-110 drop-shadow-md' : 'opacity-40 hover:opacity-80'}`} style={{ color: view === 'all' ? COLORS.blueDeep : COLORS.textMain }}>
                       <IconFileText size={26} />
                     </button>
                   </div>
 
                   {/* Wallet (Right) - 🔒 โชว์เฉพาะ Admin เท่านั้น */}
-                  <div className="flex-1 flex items-center justify-center">
-                    {isAdmin && (
+                  {isAdmin && (
+                    <div className="flex-1 flex items-center justify-center">
                       <button onClick={() => setView('revenue')} className={`p-2 transition-all z-10 ${view === 'revenue' ? 'scale-110 drop-shadow-md' : 'opacity-40 hover:opacity-80'}`} style={{ color: view === 'revenue' ? COLORS.orangeDeep : COLORS.textMain }}>
                         <IconWallet size={26} />
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Floating Action Button (Admin Plus) */}
                   {isAdmin && (
