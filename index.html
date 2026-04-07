@@ -281,7 +281,7 @@
       const circumference = 2 * Math.PI * radius;
       const strokeDashoffset = circumference - (percent / 100) * circumference;
       
-      // ✨ เช็คว่าคิวนี้มี Tip ไหม (ถ้ามีให้เปิดเอฟเฟ็คเรืองแสง)
+      // เช็คว่าคิวนี้มี Tip ไหม
       const hasTip = task.hasTip === true || task.hasTip === 'true' || parseFloat(task.tipAmount) > 0;
 
       return (
@@ -376,11 +376,26 @@
             </div>
           </div>
 
-          {/* ✨ เพิ่มเอฟเฟ็คเรืองแสงและลอยขึ้นลงเบาๆ ตรงกลมๆ หากมี Tip */}
+          {/* ✨ เอฟเฟ็คเรืองแสงสีขาวและมีประกายระยิบระยับ (SVG วาดเอง) หากมี Tip */}
           <div className={`w-[64px] flex-shrink-0 flex flex-col items-center justify-center relative transition-transform ${hasTip ? 'animate-bounce-slow' : ''}`}>
              {hasTip && (
-               <div className="absolute top-0 w-[64px] h-[64px] rounded-full blur-[8px] opacity-60 animate-pulse pointer-events-none" style={{ backgroundColor: circleColor, transform: 'scale(1.15)' }}></div>
+               <>
+                 {/* แสงสีขาวกระจายอยู่ด้านหลัง */}
+                 <div className="absolute inset-0 rounded-full blur-[10px] opacity-80 animate-pulse pointer-events-none bg-white z-0" style={{ transform: 'scale(1.25)' }}></div>
+                 
+                 {/* ประกายวิ้งๆ (Sparkles) วาดเองด้วย SVG */}
+                 <div className="absolute -top-2 -right-2 w-4 h-4 drop-shadow-md animate-twinkle pointer-events-none z-20">
+                   <svg viewBox="0 0 24 24" fill="white"><path d="M12 0l2.5 8.5L24 12l-9.5 3.5L12 24l-2.5-8.5L0 12l9.5-3.5z"/></svg>
+                 </div>
+                 <div className="absolute top-8 -left-3 w-3 h-3 drop-shadow-md animate-twinkle-delay pointer-events-none z-20">
+                   <svg viewBox="0 0 24 24" fill="white"><path d="M12 0l2.5 8.5L24 12l-9.5 3.5L12 24l-2.5-8.5L0 12l9.5-3.5z"/></svg>
+                 </div>
+                 <div className="absolute -bottom-2 right-4 w-2 h-2 drop-shadow-md animate-twinkle pointer-events-none z-20" style={{ animationDelay: '0.5s' }}>
+                   <svg viewBox="0 0 24 24" fill="white"><path d="M12 0l2.5 8.5L24 12l-9.5 3.5L12 24l-2.5-8.5L0 12l9.5-3.5z"/></svg>
+                 </div>
+               </>
              )}
+             
              <div className="relative w-[64px] h-[64px] flex items-center justify-center z-10">
                <svg className="absolute inset-0 w-full h-full transform -rotate-90 overflow-visible" viewBox="0 0 100 100">
                    <circle cx="50" cy="50" r="49" fill={COLORS.orange} />
@@ -493,7 +508,10 @@
       });
       
       // State สำหรับหน้ารายรับ (Revenue View)
-      const [revenueMonth, setRevenueMonth] = useState('all');
+      const [revenueMonth, setRevenueMonth] = useState(() => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      });
       const [revenueFilter, setRevenueFilter] = useState('grand'); // 'grand', 'sub', 'tip'
       const [isTipEnabled, setIsTipEnabled] = useState(false);
 
@@ -627,7 +645,8 @@
       const calculateRevenue = useMemo(() => {
           let total = 0;
           revenueTasks.forEach(t => {
-              const sub = parseFloat(t.totalAmount) || 0;
+              // ✨ เปลี่ยนมาใช้ paidAmount ในการคำนวณยอดเงิน
+              const sub = parseFloat(t.paidAmount) || 0;
               const tip = parseFloat(t.tipAmount) || 0;
               if(revenueFilter === 'grand') total += (sub + tip);
               if(revenueFilter === 'sub') total += sub;
@@ -856,6 +875,7 @@
                 <div className="animate-fadeIn">
                   {/* Revenue View */}
                   <div className="flex gap-2 mb-4 relative z-10">
+                     {/* เปลี่ยนช่องเลือกเดือนเป็น Dropdown สำหรับดูแบบรวมทั้งหมด */}
                      <div className="flex-1 p-1.5 rounded-2xl shadow-sm flex items-center pr-2 backdrop-blur-md transition-colors hover:opacity-80 cursor-pointer" style={{ backgroundColor: `${COLORS.cardWhite}cc`, borderWidth: '2px', borderColor: COLORS.cardBorder }}>
                         <IconCalendar size={16} className="text-[#978489] ml-2 mr-1 flex-shrink-0" />
                         <select value={revenueMonth} onChange={(e) => setRevenueMonth(e.target.value)} className="bg-transparent outline-none text-[11px] font-black text-[#978489] w-full cursor-pointer appearance-none px-1">
@@ -896,7 +916,8 @@
 
                   <div className="space-y-2">
                       {revenueTasks.map(t => {
-                          const sub = parseFloat(t.totalAmount) || 0;
+                          // ✨ เปลี่ยนมาใช้ paidAmount สำหรับการคำนวณแต่ละรายการ
+                          const sub = parseFloat(t.paidAmount) || 0;
                           const tip = parseFloat(t.tipAmount) || 0;
                           let amount = 0;
                           if(revenueFilter === 'grand') amount = sub + tip;
@@ -1180,6 +1201,14 @@
             @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
             @keyframes text-wave { 0%, 20%, 100% { transform: translateY(0px); } 10% { transform: translateY(-5px); } }
             @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            
+            /* ✨ แอนิเมชั่นวิ้งๆ สำหรับดาวระยิบระยับ */
+            @keyframes twinkle {
+              0%, 100% { opacity: 0.1; transform: scale(0.6) rotate(0deg); }
+              50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
+            }
+            .animate-twinkle { animation: twinkle 2.5s ease-in-out infinite; }
+            .animate-twinkle-delay { animation: twinkle 3s ease-in-out infinite 1.2s; }
             
             .animate-text-wave { animation: text-wave 4s ease-in-out infinite; }
             .animate-breathe { animation: breathe 4s ease-in-out infinite; transform-origin: center; }
